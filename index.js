@@ -13,16 +13,17 @@ const client = new Client({
     ]
 });
 
+const configuration = new Configuration({
+    apiKey: process.env.API_KEY,
+})
+const openai = new OpenAIApi(configuration);
+
 client.on('ready', () => {
     console.log("The bot is online!");
     client.user.setActivity('Cupid - FIFTY FIFTY', { type: ActivityType.Listening });
     
 });
 
-const configuration = new Configuration({
-    apiKey: process.env.API_KEY,
-})
-const openai = new OpenAIApi(configuration);
 
 client.on('messageCreate', async (message) => {
     try{
@@ -32,25 +33,15 @@ client.on('messageCreate', async (message) => {
 
         const textoMinuscula = message.content.toLowerCase();
 
-        //Crea tutorial
+        //Create tutorial
         if(textoMinuscula.startsWith('help') || textoMinuscula.startsWith('ayuda')){
-            message.reply("':' Foto/Picture\n'!' Ignorar/Ignore bot").then(res => {
-                res.react('🥵')
-            });;
-            return
+            await showHelp(message);
+            return;
         }
 
-        //Crea imagen
-        if(message.content.startsWith(':')){
-            const response = await openai.createImage({
-                prompt: message.content.split(':')[1],
-                n: 1,
-                size: "1024x1024"
-            });
-
-            message.reply(response.data.data[0].url).then(res => {
-                res.react('🎥')
-            });;
+        //Create image
+        if(message.content.startsWith('.')){
+            await createImage(message);
             return
             /*sdk.createGeneration({
                 prompt: 'An oil painting of a cat',
@@ -64,32 +55,9 @@ client.on('messageCreate', async (message) => {
             return*/
         }
 
-        let conversationLog = [{role:'system', content: "You are a troll."}]
-        
-        await message.channel.sendTyping();
+        //Crea respuesta de texto
+        await createResponse(message);
 
-        let prevMessages = await message.channel.messages.fetch({limit: 15});
-        prevMessages.reverse()
-
-        prevMessages.forEach((msg) =>{
-            if(msg.content.startsWith('!')) return
-            if(msg.author.id !== client.user.id && message.author.bot) return
-            //if(msg.author.id !== message.author.id) return
-
-            conversationLog.push({
-                role: 'user',
-                content: msg.content
-            })
-        })
-        
-        //Crea texto
-        const result = await openai.createChatCompletion({
-            model: 'gpt-3.5-turbo',
-            messages: conversationLog
-        })
-        message.reply(result.data.choices[0].message).then(res => {
-            res.react('🤓')
-        });
     } catch (error) {
         console.log(error)
         message.reply("No se puede buscar esto pedazo de restrasado.")
@@ -97,6 +65,58 @@ client.on('messageCreate', async (message) => {
 
 })
 
+async function showHelp(message){
+    await message.channel.sendTyping();
+    message.reply("'.' Foto/Picture\n'!' Ignorar/Ignore bot").then(res => {
+        res.react('🥵')
+    });
+}
+
+async function createImage(message){
+
+    await message.channel.sendTyping();
+    const response = await openai.createImage({
+        prompt: message.content.split('.')[1],
+        n: 1,
+        size: "1024x1024"
+    });
+
+    message.reply(response.data.data[0].url).then(res => {
+        res.react('🎥')
+    });
+}
+
+async function createResponse(message){
+
+    let conversationLog = [{role:'system', content: "You are a troll."}]
+        
+    await message.channel.sendTyping();
+
+    let prevMessages = await message.channel.messages.fetch({limit: 15});
+    prevMessages.reverse()
+
+    //Search the conversation
+    prevMessages.forEach((msg) =>{
+        if(msg.content.startsWith('!')) return
+        if(msg.author.id !== client.user.id && message.author.bot) return
+        //if(msg.author.id !== message.author.id) return
+
+        conversationLog.push({
+            role: 'user',
+            content: msg.content
+        })
+    })
+    
+    //Crea texto
+    const result = await openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: conversationLog
+    })
+    message.reply(result.data.choices[0].message).then(res => {
+        res.react('🤓')
+    });
+
+}
 
 client.login(process.env.TOKEN)
 
