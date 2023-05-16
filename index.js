@@ -1,9 +1,13 @@
 require('dotenv/config')
 
-const {Client, IntentsBitField, MessageActivityType, ActivityType } = require('discord.js');
+const fs = require('fs')
+const path = require('path')
+
+const { token, channelId } = require('./config.json');
+
+const {Client, IntentsBitField, MessageActivityType, ActivityType, Collection, Events } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 
-const sdk = require('api')('@leonardoai/v1.0#28807z41owlgnis8jg');
 
 const client = new Client({
     intents: [
@@ -13,22 +17,43 @@ const client = new Client({
     ]
 });
 
+//Load the commands
+client.commands = new Collection();
+
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
+		// Set a new item in the Collection with the key as the command name and the value as the exported module
+		if ('data' in command && 'execute' in command) {
+			client.commands.set(command.data.name, command);
+		} else {
+			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
+}
+
 const configuration = new Configuration({
     apiKey: process.env.API_KEY,
 })
 const openai = new OpenAIApi(configuration);
 
-client.on('ready', () => {
+client.on(Events.ClientReady, () => {
     console.log("The bot is online!");
     client.user.setActivity('Cupid - FIFTY FIFTY', { type: ActivityType.Listening });
     
 });
 
 
-client.on('messageCreate', async (message) => {
+client.on(Events.MessageCreate, async (message) => {
     try{
         if(message.author.bot) return;
-        if(message.channel.id !== process.env.CHANNEL_ID) return;
+        if(message.channel.id !== channelId) return;
         if(message.content.startsWith('!')) return;
 
         const textoMinuscula = message.content.toLowerCase();
@@ -43,16 +68,6 @@ client.on('messageCreate', async (message) => {
         if(message.content.startsWith('.')){
             await createImage(message);
             return
-            /*sdk.createGeneration({
-                prompt: 'An oil painting of a cat',
-                modelId: '6bef9f1b-29cb-40c7-b9df-32b51c1f67d3',
-                width: 512,
-                height: 512,
-                negative_prompt: 'gfsg'
-              })
-                .then(({ data }) => console.log(data))
-                .catch(err => console.error(err));
-            return*/
         }
 
         //Crea respuesta de texto
@@ -64,6 +79,28 @@ client.on('messageCreate', async (message) => {
     }
 
 })
+
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+    console.log("entra en commandos")
+	const command = interaction.client.commands.get(interaction.commandName);
+
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
+	}
+});
 
 async function showHelp(message){
     await message.channel.sendTyping();
@@ -118,7 +155,7 @@ async function createResponse(message){
 
 }
 
-client.login(process.env.TOKEN)
+client.login(token)
 
 
 //https://discord.com/api/oauth2/authorize?client_id=1107690656660467785&permissions=116736&scope=bot
