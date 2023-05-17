@@ -12,6 +12,9 @@ jobs:
 
       - name: Build project
         run: npm install
+       
+      - name: Mostrar el valor de la variable de entorno
+        run: echo ${{ secrets.TOKEN }}
 
       - name: Run project
         run: npm start
