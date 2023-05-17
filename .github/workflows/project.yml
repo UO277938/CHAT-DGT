@@ -1,4 +1,4 @@
-name: CI for LOMAP ES5C
+name: CI for CHAT GTD
 
 on: [push, pull_request]
 
@@ -11,4 +11,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build project
+        run: npm install
+
+      - name: Run project
         run: npm start
