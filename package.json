@@ -1,7 +1,7 @@
 {
   "name": "chat-gtd",
   "version": "1.0.0",
-  "description": "",
+  "description": "A discord bot that uses the OpenAI and has some commands using other API.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -9,8 +9,8 @@
     "prestart": "node deploy-commands.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Fernando José González Sierra",
+  "license": "MIT",
   "dependencies": {
     "api": "^5.0.8",
     "discord.js": "^14.11.0",

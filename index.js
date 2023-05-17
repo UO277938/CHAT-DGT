@@ -47,6 +47,7 @@ const configuration = new Configuration({
 })
 const openai = new OpenAIApi(configuration);
 
+
 client.on(Events.ClientReady, () => {
     console.log("The bot is online!");
     client.user.setActivity('Cupid - FIFTY FIFTY', { type: ActivityType.Listening });
@@ -86,6 +87,9 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
+    if(interaction.channel.id !== channelId) {
+        return;
+    }
     
 	const command = interaction.client.commands.get(interaction.commandName);
 
@@ -158,6 +162,11 @@ async function createResponse(message){
         res.react('🤓')
     });
 
+}
+
+async function log(message) {
+    await logChannel.send(message)
+        .catch(console.error)
 }
 
 client.login(token)

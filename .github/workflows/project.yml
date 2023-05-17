@@ -13,5 +13,6 @@ jobs:
       - name: Build project
         run: npm install
 
-      - name: Run project
-        run: npm start
+      # unable to configure correctly the secret keys in github
+      #- name: Run project
+      #  run: npm start
