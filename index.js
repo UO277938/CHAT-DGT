@@ -108,7 +108,8 @@ client.on(Events.InteractionCreate, async interaction => {
 
 async function showHelp(message){
     await message.channel.sendTyping();
-    message.reply("'.' Foto/Picture\n'!' Ignorar/Ignore bot").then(res => {
+    message.reply("Escribe cualquier cosa y te responde Berto.\n'.' Foto/Picture\n'!' Ignorar/Ignore bot\n '/' Commands (new)")
+    .then(res => {
         res.react('🥵')
     });
 }
