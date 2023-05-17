@@ -6,11 +6,11 @@ const fs = require('fs');
 const path = require('path');
 
 
-const token = process.env.TOKEN || '{{secrets.TOKEN}}'
-const channelId = process.env.CHANNEL_ID || '{{secrets.CHANNEL_ID}}'
-const clientId = process.env.CLIENT_ID //|| '{{secrets.CLIENT_ID}}'
-const guildId = process.env.GUILD_ID //|| '{{secrets.GUILD_ID}}'
-const openAi = process.env.OPENAI_KEY || '{{secrets.OPENAI_KEY}}'
+const token = process.env.TOKEN || secrets.TOKEN
+const channelId = process.env.CHANNEL_ID || secrets.CHANNEL_ID
+const clientId = process.env.CLIENT_ID || secrets.CLIENT_ID
+const guildId = process.env.GUILD_ID || secrets.GUILD_ID
+const openAi = process.env.OPENAI_KEY || secrets.OPENAI_KEY
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
