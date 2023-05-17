@@ -5,6 +5,10 @@ const path = require('path')
 
 //const { token, channelId } = require('./config.json');
 
+const token = process.env.TOKEN || '{{secrets.TOKEN}}'
+const channelId = process.env.CHANNEL_ID || '{{secrets.CHANNEL_ID}}'
+const openAi = process.env.OPENAI_KEY || '{{secrets.OPENAI_KEY}}'
+
 const {Client, IntentsBitField, MessageActivityType, ActivityType, Collection, Events } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -39,7 +43,7 @@ for (const folder of commandFolders) {
 }
 
 const configuration = new Configuration({
-    apiKey: process.env.OPENAI_KEY,
+    apiKey: openAi,
 })
 const openai = new OpenAIApi(configuration);
 
@@ -53,7 +57,7 @@ client.on(Events.ClientReady, () => {
 client.on(Events.MessageCreate, async (message) => {
     try{
         if(message.author.bot) return;
-        if(message.channel.id !== process.env.CHANNEL_ID) return;
+        if(message.channel.id !== channelId) return;
         if(message.content.startsWith('!')) return;
 
         const textoMinuscula = message.content.toLowerCase();
@@ -155,7 +159,7 @@ async function createResponse(message){
 
 }
 
-client.login(process.env.TOKEN)
+client.login(token)
 
 module.export = openai;
 
