@@ -3,7 +3,7 @@ require('dotenv/config')
 const fs = require('fs')
 const path = require('path')
 
-const { token, channelId } = require('./config.json');
+//const { token, channelId } = require('./config.json');
 
 const {Client, IntentsBitField, MessageActivityType, ActivityType, Collection, Events } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
@@ -39,7 +39,7 @@ for (const folder of commandFolders) {
 }
 
 const configuration = new Configuration({
-    apiKey: process.env.API_KEY,
+    apiKey: process.env.OPENAI_KEY,
 })
 const openai = new OpenAIApi(configuration);
 
@@ -53,7 +53,7 @@ client.on(Events.ClientReady, () => {
 client.on(Events.MessageCreate, async (message) => {
     try{
         if(message.author.bot) return;
-        if(message.channel.id !== channelId) return;
+        if(message.channel.id !== process.env.CHANNEL_ID) return;
         if(message.content.startsWith('!')) return;
 
         const textoMinuscula = message.content.toLowerCase();
@@ -82,7 +82,7 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
-    console.log("entra en commandos")
+    
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
@@ -91,7 +91,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 
 	try {
-		await command.execute(interaction);
+		await command.execute(interaction, openai);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
@@ -155,7 +155,9 @@ async function createResponse(message){
 
 }
 
-client.login(token)
+client.login(process.env.TOKEN)
+
+module.export = openai;
 
 
 //https://discord.com/api/oauth2/authorize?client_id=1107690656660467785&permissions=116736&scope=bot
